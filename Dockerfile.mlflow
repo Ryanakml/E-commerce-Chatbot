@@ -1,0 +1,8 @@
+# Dockerfile.mlflow
+FROM python:3.10-slim
+
+# Install necessary dependencies for Postgres and MinIO (S3)
+RUN pip install mlflow-skinny psycopg2-binary boto3
+
+# Default command to run MLflow server
+CMD
