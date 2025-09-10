@@ -1,0 +1,13 @@
+name: ecommerce-chatbot
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pytorch::pytorch=2.1.0
+  - pytorch::pytorch-cuda=11.8 # Or your specific CUDA version
+  - pip:
+    - -r requirements.txt
