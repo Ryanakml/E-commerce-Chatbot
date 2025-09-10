@@ -5,15 +5,15 @@ services:
     image: postgres:14-alpine
     container_name: postgres_db
     ports:
-      - 5432:5432
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=
-      - POSTGRES_PASSWORD=
-      - POSTGRES_DB=
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
     healthcheck:
-      test:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,16 +23,16 @@ services:
     image: minio/minio:RELEASE.2023-11-20T22-40-07Z
     container_name: minio_storage
     ports:
-      - 9000:9000 # API
-      - 9001:9001 # Console
+      - "${MINIO_API_PORT}:9000"   # API
+      - "${MINIO_CONSOLE_PORT}:9001" # Console
     volumes:
       - minio_data:/data
     environment:
-      - MINIO_ROOT_USER=
-      - MINIO_ROOT_PASSWORD=
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
     command: server /data --console-address :9001
     healthcheck:
-      test:
+      test: ["CMD", "curl", "-f", "http://localhost:${MINIO_API_PORT}/minio/health/live"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -40,17 +40,17 @@ services:
 
   mlflow:
     build:
-      context:.
+      context: .
       dockerfile: Dockerfile.mlflow
     container_name: mlflow_server
     ports:
-      - 5000:5000
+      - "${MLFLOW_PORT}:5000"
     environment:
-      - BACKEND_STORE_URI=postgresql://:@postgres:5432/
-      - ARTIFACT_ROOT=s3://mlflow/
-      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
-      - AWS_ACCESS_KEY_ID=
-      - AWS_SECRET_ACCESS_KEY=
+      BACKEND_STORE_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_MLFLOW_DB}"
+      ARTIFACT_ROOT: "s3://${MINIO_BUCKET_MLFLOW}/"
+      MLFLOW_S3_ENDPOINT_URL: "${MLFLOW_S3_ENDPOINT_URL}"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,7 +74,7 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - 9092:9092
+      - "${KAFKA_PORT}:9092"
       - 29092:29092
     environment:
       KAFKA_BROKER_ID: 1
@@ -89,10 +89,10 @@ services:
     container_name: prefect_server
     command: prefect server start
     ports:
-      - 4200:4200
+      - "${PREFECT_UI_PORT}:4200"
     environment:
-      - PREFECT_UI_API_URL=http://localhost:4200/api
-      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://:@postgres:5432/
+      PREFECT_UI_API_URL: "http://localhost:${PREFECT_UI_PORT}/api"
+      PREFECT_API_DATABASE_CONNECTION_URL: "postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
     depends_on:
       - postgres
     restart: unless-stopped
@@ -102,7 +102,7 @@ services:
     container_name: prefect_worker
     command: prefect worker start -p default-agent-pool
     environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
+      PREFECT_API_URL: "http://prefect-server:${PREFECT_UI_PORT}/api"
     depends_on:
       - prefect-server
     restart: unless-stopped
@@ -111,9 +111,9 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
     container_name: elasticsearch
     environment:
-      - discovery.type=single-node
+      discovery.type: single-node
     ports:
-      - 9200:9200
+      - "${ES_PORT}:9200"
     volumes:
       - es_data:/usr/share/elasticsearch/data
     restart: unless-stopped
