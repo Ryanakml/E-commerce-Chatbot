@@ -99,9 +99,7 @@ flowchart TD
 
 ### 1. Clone the Repository
 
-Bash
-
-```
+```bash
 git clone [https://github.com/your-username/ecommerce-chatbot.git](https://github.com/your-username/ecommerce-chatbot.git)
 cd ecommerce-chatbot
 ```
@@ -110,9 +108,7 @@ cd ecommerce-chatbot
 
 Copy the example environment file and update it with your desired credentials. The defaults are suitable for local development.
 
-Bash
-
-```
+```bash
 cp.env.example.env
 ```
 
@@ -120,9 +116,7 @@ cp.env.example.env
 
 This command will start all the necessary backend services (Postgres, MinIO, MLflow, Kafka, etc.) in Docker containers.
 
-Bash
-
-```
+```bash
 docker compose up -d --build
 ```
 
@@ -143,17 +137,14 @@ This project uses DVC to manage the data pipeline and Prefect to orchestrate it.
 
 First, pull the initial data from the DVC remote (MinIO):
 
-Bash
 
-```
+```bash
 dvc pull
 ```
 
 To run the full data processing and model training pipeline, execute the Prefect flow:
 
-Bash
-
-```
+```bash
 python services/worker/flows/main_pipeline.py
 ```
 
@@ -163,9 +154,7 @@ Once the API service is running (either via `docker compose up api` or deployed 
 
 **Generate a response from the chatbot:**
 
-Bash
-
-```
+```bash
 curl -X POST "http://localhost:8000/generate_response" \
 -H "Content-Type: application/json" \
 -d '{
