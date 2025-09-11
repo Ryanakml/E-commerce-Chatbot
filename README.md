@@ -25,49 +25,11 @@ This repository contains the complete source code and infrastructure for buildin
 
 ### 1. System Data Flowmermaid
 
-flowchart LR
-
-User(Chat UI) -->|message| API(FastAPI Bot Backend)
-
-API --> DM(Dialog Manager)
-
-DM --> IC(Intent Classifier)
-
-DM --> NER(Slot Extractor)
-
-DM --> RETR(Retriever: ES+FAISS)
-
-DM --> GEN(LLM Generator w/ RAG)
-
-DM -->|fallback| Human(Human Agent UI)
-
-RETR --> Catalog[(Product Catalog)]
-
-DM --> Orders
-
-DM --> Responses((Response))
-
-Responses --> User
-
-````
+<img src="assets/data_flow.png" width="800"/>
 
 ### 2. Training Pipeline
 
-```mermaid
-flowchart TD
-  Ingest --> Preprocess --> Labeling --> Features
-  Features --> TrainIntent
-  Features --> TrainNER
-  Features --> TrainRetriever
-  Features --> TrainGen
-  TrainIntent --> Eval
-  TrainNER --> Eval
-  TrainRetriever --> Eval
-  TrainGen --> Eval
-  Eval --> Registry(MLflow Registry)
-  Registry --> Package(Docker Image)
-  Package --> Deploy(K8s via Helm)
-````
+<img src="assets/model.png" alt="System Architecture" width="800"/>
 
 ## Tech Stack
 
